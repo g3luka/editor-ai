@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "version": "1.0.0",
+  "name": "g3luka/editor-ai",
+  "title": "Editor AI",
+  "description": "Intelligence Artificial Modal Playground",
+  "keywords": ["playground", "ai", "ia", "modal"],
+  "category": "text",
+  "icon": "lightbulb",
+  "textdomain": "editor-ai",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css"
+}

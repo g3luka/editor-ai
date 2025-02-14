@@ -1,0 +1,42 @@
+{
+  "name": "g3luka/editor-ai",
+  "description": "WordPress Editor with Artificial Intelligence",
+  "keywords": [
+    "editor",
+    "wordpress",
+    "ai",
+    "ia",
+    "artificial intelligence",
+    "inteligência artificial"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Giovanni de Luca",
+      "email": "giovanni@nordica.digital",
+      "homepage": "https://nordica.digital/"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "EditorAI\\": "src/"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "type": "project",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org"
+    }
+  ],
+  "config": {
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "optimize-autoloader": true
+  }
+}

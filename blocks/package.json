@@ -1,0 +1,29 @@
+{
+  "name": "editor-ai-blocks",
+  "version": "1.0.0",
+  "description": "Editor AI Blocks",
+  "author": "Giovanni de Luca",
+  "license": "MIT",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "wp-scripts build --webpack-copy-php",
+    "start": "wp-scripts start --webpack-copy-php",
+    "format": "wp-scripts format",
+    "lint:css": "wp-scripts lint-style",
+    "lint:js": "wp-scripts lint-js",
+    "packages-update": "wp-scripts packages-update",
+    "plugin-zip": "wp-scripts plugin-zip",
+    "check-engines": "wp-scripts check-engines",
+    "check-licenses": "wp-scripts check-licenses",
+    "lint:md:docs": "wp-scripts lint-md-docs",
+    "lint:pkg-json": "wp-scripts lint-pkg-json",
+    "test:e2e": "wp-scripts test-e2e",
+    "test:unit": "wp-scripts test-unit-js"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^26.5.0"
+  },
+  "dependencies": {
+    "@wordpress/icons": "^10.13.0"
+  }
+}
