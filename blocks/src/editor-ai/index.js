@@ -20,20 +20,14 @@ import {
   TextareaControl,
   __experimentalConfirmDialog as ConfirmDialog,
 } from "@wordpress/components";
-import {
-  box,
-  title,
-  plus,
-  pencil,
-  settings,
-  trash,
-  addCard,
-  atSymbol,
-} from "@wordpress/icons";
-import { useState } from "@wordpress/element";
+import * as icons from "@wordpress/icons";
+import { pencil, settings, trash } from "@wordpress/icons";
+import { useEffect, useState } from "@wordpress/element";
 
 const options = {
-  endpointApi: "/editor-ai/v1/playground",
+  baseEndpoint: "/editor-ai/v1",
+  apiUseCases: "/use-cases",
+  apiPlayground: "/playground",
   taskName: "editor-ai",
   modelParams: {
     model: "CLAUDE_3_5_SONNET",
@@ -71,6 +65,7 @@ function PluginComponent() {
   const [isOpenSettings, setOpenSettings] = useState(false);
   const [modelParams, setModelParams] = useState(options.modelParams);
   const [loading, setLoading] = useState(false);
+  const [useCases, setUseCases] = useState([]);
   const [snacks, setSnacks] = useState([]);
   const [applyDialog, setApplyDialog] = useState(false);
   const [promptAi, setPromptAi] = useState("");
@@ -80,98 +75,31 @@ function PluginComponent() {
   const userCan = useSelect((select) =>
     select("core").canUser("create", "users"),
   );
-
-  const useCases = {
-    rewriteContent: {
-      buttonLabel: "Reescrever conteúdo",
-      prompt: `Responda como um jornalista profissional que trabalha em um site popular de notícias locais voltado ao público da cidade de Curitiba, no estado do Paraná. Sua tarefa é reescrever o Conteúdo de contexto fornecido abaixo, aplicando técnicas de jornalismo local e práticas recomendadas nos melhores manuais de redação jornalística.\n\nAs diretrizes para a reescrita são:\n* O texto deve ser reescrito de forma única, utilizando linguagem neutra, clara e acessível, com um tom moderno e dinâmico, típico de sites digitais de notícias locais. Adicione elementos sutis de informalidade sem comprometer a seriedade.\n* Identifique e utilize a palavra-chave mais relevante do conteúdo para trabalhar estratégias de SEO. Insira a palavra-chave de forma estratégica em títulos, subtítulos e corpo do texto, sem comprometer a legibilidade ou fluidez do conteúdo.\n* Otimize a qualidade do texto por meio de revisões cuidadosas: elimine redundâncias, melhore a coesão entre os parágrafos e garanta a precisão das informações, mas use apenas as informações e dados que estão presentes no texto original.\n* Certifique-se de que o texto reescrito seja mais direto, envolvente e impactante do que o original.\n* Caso o texto original inclua listas, intertítulos ou subtítulos, mantenha a mesma estrutura no texto que você reescrever. Reorganize as informações, se necessário, para melhorar a leitura e destacar os pontos mais relevantes.\n* Respeite o tamanho original do texto fornecido e mantenha no mínimo 1.000 caracteres. Evite adições ou cortes significativos de informações importantes, mas priorize a clareza e o impacto do conteúdo.\n* Caso o texto original tenha palavras ou frases entre aspas, preserve sem qualquer alteração.\n* Não crie citações; copie integralmente e sem alterações apenas as citações existentes no texto original.\n* Não crie frase de conclusão ou fechamento ao final do texto.\n\nAgora reescreva a notícia abaixo de acordo com diretrizes informadas:`,
-      open: () => {
-        setPromptAi(useCases.rewriteContent.prompt);
-        copyContent();
-        setOpen(true);
-      },
-    },
-    generateNewContent: {
-      buttonLabel: "Gerar um novo conteúdo",
-      prompt:
-        "- Atue como um jornalista profissional que trabalha em um site popular de notícias locais\n- Gere uma matéria jornalística, usando as informações de contexto, com informações relevantes para informar os leitores, usando as melhores técnicas de jornalismo local\n- Use as práticas recomendadas nos melhores manuais de redação para jornalismo\n- Procure identificar a palavra chave mais importante e trabalhe conceito de SEO no conteúdo\n- Use linguagem leve, sutilmente próxima ao leitor, explicando siglas e conceitos\n- A notícia gerada deverá ter entre 4 e 8 parágrafos, dependendo da complexidade do tema e necessidade de explicar o contexto.",
-      context: `Qual é o tema ou assunto da matéria?\n\n\nQual é o público-alvo da matéria?\n\n\nPalavras-chave de destaque?\n\n\nTem links de referência?\n`,
-      open: () => {
-        setPromptAi(useCases.generateNewContent.prompt);
-        setContextAi(useCases.generateNewContent.context);
-        setOpen(true);
-      },
-    },
-    generateFollowup: {
-      buttonLabel: "Ideias de desdobramentos (suite)",
-      prompt: `"Suite", designa a reportagem que explora os desdobramentos de um fato que foi notícia, retomar um assunto, perscrutar seus desdobramentos, a fim de transformá-lo outra vez em notícia.\n- Atue como um jornalista profissional que trabalha em um site popular de notícias locais\n- Seu objetivo é criar 5 ideias de desdobramentos (Suite) para a matéria jornalística que está no contexto, para que que sejam usadas como sugestões de novas pautas.\n- Use as práticas recomendadas nos melhores manuais de redação para jornalismo\n- Você deve explorar os desdobramentos de um fato que foi notícia, retomar um assunto, perscrutar seus desdobramentos, a fim de transformá-lo outra vez em notícia.\n- Ao menos uma das ideias deve ser pensada no público local`,
-      open: () => {
-        setPromptAi(useCases.generateFollowup.prompt);
-        copyContent();
-        setOpen(true);
-      },
-    },
-    generateExpansion: {
-      buttonLabel: "Ideias de expansão",
-      prompt: `- Atue como um jornalista profissional, especialista em criar novas pautas, que trabalha em um site popular de notícias locais\n- Seu objetivo é criar 8 ideias de expansão a partir do contexto com perguntas provocativas e reflexivas, que ajudem outros jornalistas a ter insights e escrever novas pautas. \n- Procure ampliar os temas, gerando novos insights por proximidade, associação, comparação, confronto ou similaridade \n- Use as práticas recomendadas nos melhores manuais de redação para jornalismo\n- Use a criatividade para perguntar outros temas além dos que são tratados no contexto\n- Tente gerar insights sobre aplicações, hipóteses, comparações, consequências, benefícios, impactos, repercussões\n- Ao menos uma das perguntas deve ser pensada no público local\n- suas perguntas podem envolver os fatos, entidades, personagens, entre outros\n- Você pode usar aleatoriamente em suas perguntas termos como "quais", "de que maneira", "quando", "onde", "quem", "por que", "o que", "como", "que", "quanto", entre outras`,
-      open: () => {
-        setPromptAi(useCases.generateExpansion.prompt);
-        copyContent();
-        setOpen(true);
-      },
-    },
-    generatePostsFacebook: {
-      buttonLabel: "Ideias de posts para o Facebook",
-      prompt: `- ATUE COMO UM PROFISSIONAL SOCIAL MEDIA que trabalha em um site de notícias locais e administra uma página no Facebook\n- Crie 5 ideias para posts no Facebook usando as melhores técnicas de social media para engajar o usuário; e 5 textos para copy + link\n- use as informações do contexto\n- use as melhores técnicas de copywriting e engajamento para redes sociais.`,
-      open: () => {
-        setPromptAi(useCases.generatePostsFacebook.prompt);
-        copyContent();
-        setOpen(true);
-      },
-    },
-    generatePostsInstagram: {
-      buttonLabel: "Ideias de posts para o Instagram",
-      prompt: `- ATUE COMO UM PROFISSIONAL SOCIAL MEDIA que trabalha em um site de notícias locais e administra um perfil no Instagram\n- Crie 7 sugestões de ideias para post no feed, stories ou reel no Instagram usando as melhores técnicas de social media para engajar o usuário\n- Use as informações do contexto\n- Use as melhores técnicas de copywrititing e engajamento para Instagram`,
-      open: () => {
-        setPromptAi(useCases.generatePostsInstagram.prompt);
-        copyContent();
-        setOpen(true);
-      },
-    },
-    generateTitles: {
-      buttonLabel: "Ideias de título do Post",
-      prompt:
-        "- Atue como um jornalista profissional que trabalha em um site popular de notícias locais, que é especialista em escrever títulos.\n- Seu objetivo é criar 7 títulos para o conteúdo do contexto.\n- Use as práticas recomendadas nos melhores manuais de redação para jornalismo\n- crie títulos únicos, Seja específico, transmitir um senso de urgência, Seu título tem que ser útil\n- Dê a informação mais importante e seja claro\n- Coloque ao menos um verbo nos títulos\n- Priorize as palavras-chave para SEO\n- Se possível, use números\n- Se possível, gere curiosidade\n- Deixe claro que você tem uma explicação\n- Crie senso de urgência\n- Crie uma familiaridade com o leitor\n- Ao menos um dos títulos deve ser uma pergunta\n- Trabalhar com termos contrastantes para criar uma polêmica\n- Se houver, você pode citar referências",
-      open: () => {
-        setPromptAi(useCases.generateTitles.prompt);
-        copyContent();
-        setOpen(true);
-      },
-    },
-    generateHeadlinesHomePage: {
-      buttonLabel: "Ideias de título para a Capa",
-      prompt:
-        "- Atue como um jornalista profissional que trabalha em um site popular de notícias locais, que é especialista em escrever títulos.\n- Seu objetivo é criar 7 títulos criativos para A HOME DO SITE sobre o conteúdo do contexto com o objetivo de chamar a atenção do usuário e faze-lo clicar na notícia.\n- Use as práticas recomendadas nos melhores manuais de redação para jornalismo\n- crie títulos únicos, Seja específico, transmitir um senso de urgência, Seu título tem que ser útil\n- Dê a informação mais importante e seja claro\n- Coloque ao menos um verbo nos títulos\n- Priorize as palavras-chave para SEO\n- Se possível, use números\n- Gere curiosidade\n- você pode usar termo de comparação: como “melhores”, “piores”, “mais”, “menos”, “maiores”, entre outros.\n- Deixe claro que você tem uma explicação\n- Crie senso de urgência\n- Crie uma familiaridade com o leitor\n- Ao menos um dos títulos deve ser uma pergunta\n- Trabalhar com termos contrastantes para criar uma polêmica\n- Se houver, você pode citar referências",
-      open: () => {
-        setPromptAi(useCases.generateHeadlinesHomePage.prompt);
-        copyContent();
-        setOpen(true);
-      },
-    },
-    generateHeadlinesDiscover: {
-      buttonLabel: "Ideias de título para o Discover",
-      prompt:
-        "- Atue como um jornalista profissional que trabalha em um site popular de notícias locais, que é especialista em escrever títulos de até 66 caracteres.\n- Seu objetivo é criar 7ideias de título que performem bem na ferramenta de recomendação de conteúdo Google Discover utilizando técnicas de SEO, dentro das diretrizes de qualidade de conteúdo do google, para de chamar a atenção do usuário e faze-lo clicar na notícia.\n- Os títulos deverão ter no máximo 66 caracteres\n- Leve em consideração as diretrizes contidas nestes links\nhttps://developers.google.com/search/docs/appearance/google-discover?hl=pt-br\nhttps://support.google.com/websearch/answer/9982767?hl=pt-br\nhttps://developers.google.com/search/docs/fundamentals/creating-helpful-content?hl=pt-br",
-      open: () => {
-        setPromptAi(useCases.generateHeadlinesDiscover.prompt);
-        setContextAi(useCases.generateHeadlinesDiscover.context);
-        copyContent();
-        setOpen(true);
-      },
-    },
-  };
-
   const closeModal = () => setOpen(false);
+
+  function openUseCase(useCase) {
+    if (useCase.prompt) setPromptAi(useCase.prompt);
+    if (useCase.context) setContextAi(useCase.context);
+    if (useCase.contextContent) copyContent();
+    setOpen(true);
+  }
+  async function loadUseCases() {
+    const useCases = await apiFetch({
+      method: "GET",
+      path: `${options.baseEndpoint}${options.apiUseCases}`,
+    });
+    if (!useCases.length) {
+      addSnack({
+        id: "RESPONSE_LOAD_USE_CASES",
+        content: "Falha ao carregar os casos de uso!",
+        spokenMessage: "Falha ao carregar os casos de uso!",
+        explicitDismiss: true,
+        actions: [],
+      });
+      return;
+    }
+    setUseCases(useCases);
+  }
   function toggleSettings() {
     setOpenSettings(!isOpenSettings);
   }
@@ -217,7 +145,7 @@ function PluginComponent() {
 
     const response = await apiFetch({
       method: "POST",
-      path: options.endpointApi,
+      path: `${options.baseEndpoint}${options.apiPlayground}`,
       data: payload,
     });
 
@@ -305,6 +233,10 @@ function PluginComponent() {
   function getClientIdFromBlocks(blocks) {
     return blocks.map((block) => block.clientId);
   }
+
+  useEffect(() => {
+    loadUseCases();
+  }, []);
 
   return (
     <>
@@ -403,26 +335,17 @@ function PluginComponent() {
             Use a inteligência artificial como uma aliada para facilitar o seu
             trabalho e ser mais produtivo.
           </p>
-          <p>
-            Deixe que ela te dê insights relevantes para você focar no que mais
-            importa!
-          </p>
           <Flex direction="column">
-            <Button
-              variant="secondary"
-              icon={pencil}
-              onClick={useCases.rewriteContent.open}
-            >
-              {useCases.rewriteContent.buttonLabel}
-            </Button>
-            <Button
-              variant="secondary"
-              icon={addCard}
-              onClick={useCases.generateNewContent.open}
-            >
-              {useCases.generateNewContent.buttonLabel}
-            </Button>
-            <DropdownMenu
+            {!!useCases.length && useCases.map((useCase) => (
+              <Button
+                variant={useCase?.buttonVariant || 'secondary'}
+                icon={useCase?.buttonIcon && icons[useCase.buttonIcon] ? icons[useCase.buttonIcon] : pencil}
+                onClick={() => openUseCase(useCase)}
+              >
+                {useCase.buttonLabel}
+              </Button>
+            ))}
+            {/* <DropdownMenu
               text="Expandir conteúdo"
               label="Gerar ideias de novos conteúdos"
               icon={plus}
@@ -436,41 +359,7 @@ function PluginComponent() {
                   onClick: useCases.generateExpansion.open,
                 },
               ]}
-            />
-            <DropdownMenu
-              text="Gerar títulos"
-              label="Gerar ideias de títulos"
-              icon={title}
-              controls={[
-                {
-                  title: useCases.generateTitles.buttonLabel,
-                  onClick: useCases.generateTitles.open,
-                },
-                {
-                  title: useCases.generateHeadlinesHomePage.buttonLabel,
-                  onClick: useCases.generateHeadlinesHomePage.open,
-                },
-                {
-                  title: useCases.generateHeadlinesDiscover.buttonLabel,
-                  onClick: useCases.generateHeadlinesDiscover.open,
-                },
-              ]}
-            />
-            <DropdownMenu
-              text="Redes Sociais"
-              label="Gerar conteúdos para redes sociais"
-              icon={atSymbol}
-              controls={[
-                {
-                  title: useCases.generatePostsFacebook.buttonLabel,
-                  onClick: useCases.generatePostsFacebook.open,
-                },
-                {
-                  title: useCases.generatePostsInstagram.buttonLabel,
-                  onClick: useCases.generatePostsInstagram.open,
-                },
-              ]}
-            />
+            /> */}
           </Flex>
         </PanelBody>
       </PluginSidebar>
