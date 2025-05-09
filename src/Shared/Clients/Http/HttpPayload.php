@@ -24,7 +24,7 @@ class HttpPayload implements Exportable
 
     private function parse(): array
     {
-        if (empty($this->payload['headers'])) $this->addHeader('Content-Type', 'application/json');
+        if (empty($this->payload['headers'])) $this->addHeader('Content-Type', 'application/json')->addHeader('Cache-Control', 'no-cache');
         return $this->payload;
     }
 

@@ -77,8 +77,13 @@ class Playground implements Exportable
 
     public static function restCallback(WP_REST_Request $request)
     {
-        $params = $request->get_json_params();
-        $body = new Playground($params);
+        $payload = $request->get_json_params();
+        return self::request($payload);
+    }
+
+    public static function request($payload)
+    {
+        $body = new Playground($payload);
         $endpoint = get_option('editorai_athena_endpoint');
         $payload = new HttpPayload();
         $payload
