@@ -1,0 +1,59 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: Create Release
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_NAME: "editor-ai-${{ github.ref_name }}.zip"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Install Dependences
+        id: dependences
+        run: |
+          composer install --no-dev --optimize-autoloader --no-scripts
+          cd blocks && pnpm install --prod --frozen-lockfile
+          pnpm run build
+
+      - name: Build
+        id: build
+        run: |
+          cd blocks && pnpm run build
+
+      - name: Create Artifact
+        id: create_artifact
+        run: |
+          zip -qr artifact.zip . -x@.releaseignore
+          echo "::set-output name=artifact_path::$(pwd)/artifact.zip"
+
+      - name: Upload Artifact
+        id: upload_artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.create_artifact.outputs.artifact_path }}
+          asset_name: $ARTIFACT_NAME
+          asset_content_type: application/gzip
