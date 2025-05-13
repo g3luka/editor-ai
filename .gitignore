@@ -1,4 +1,6 @@
+*.log
 composer.phar
 composer.lock
 /vendor
-*.log
+/artifact
+artifact.zip
