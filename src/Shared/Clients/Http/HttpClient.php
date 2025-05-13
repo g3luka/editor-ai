@@ -3,6 +3,8 @@
 namespace EditorAI\Shared\Clients\Http;
 
 use EditorAI\Shared\Contracts\EventDriver;
+use Exception;
+use WP_Error;
 
 class HttpClient implements EventDriver
 {
@@ -17,13 +19,14 @@ class HttpClient implements EventDriver
         ]);
         $response = wp_remote_post($endpoint, $payload);
         if (is_wp_error($response)) {
-            error_log($response->get_error_message());
-            return false;
+            throw new Exception($response->get_error_message());
         }
         if (wp_remote_retrieve_response_code($response) === 204) return true;
         if (wp_remote_retrieve_response_code($response) !== 200) {
-            error_log("Editor AI - Requisição retornou o código de status: ". wp_remote_retrieve_response_code($response));
-            return false;
+            $code = wp_remote_retrieve_response_code($response);
+            $error = wp_remote_retrieve_response_message($response);
+            $message = "Editor AI | Requisição retornou status $code | $error";
+            throw new Exception($message, $code);
         }
         $result = wp_remote_retrieve_body($response);
         return json_decode($result, true);
