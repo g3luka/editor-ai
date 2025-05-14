@@ -47,7 +47,7 @@ jobs:
         id: create_artifact
         run: |
           zip -qr artifact.zip . -x@.releaseignore
-          echo "::set-output name=artifact_path::$(pwd)/artifact.zip"
+          echo "artifact_path=$(pwd)/artifact.zip" >> $GITHUB_OUTPUT
 
       - name: Upload Artifact
         id: upload_artifact
