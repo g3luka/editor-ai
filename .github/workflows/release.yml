@@ -29,25 +29,19 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Install Dependences
+      - name: Install & Build
         id: dependences
         run: |
           npm install --global corepack@latest
           corepack enable pnpm
           composer install --no-dev --optimize-autoloader --no-scripts
-          cd blocks && pnpm install --frozen-lockfile
-          pnpm run build
-
-      - name: Build
-        id: build
-        run: |
-          cd blocks && pnpm run build
+          cd blocks && pnpm install --frozen-lockfile && pnpm run build
 
       - name: Create Artifact
         id: create_artifact
         run: |
-          zip -qr artifact.zip . -x@.releaseignore
-          echo "artifact_path=$(pwd)/artifact.zip" >> $GITHUB_OUTPUT
+          zip -qr ${{ env.ARTIFACT_NAME }} . -i@.releasefiles
+          echo "artifact_path=$(pwd)/${{ env.ARTIFACT_NAME }}" >> $GITHUB_OUTPUT
 
       - name: Upload Artifact
         id: upload_artifact

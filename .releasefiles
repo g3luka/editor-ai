@@ -1,0 +1,8 @@
+assets/*
+blocks/register.php
+blocks/build/*
+src/*
+vendor/*
+bootstrap.php
+composer.json
+LICENCE
