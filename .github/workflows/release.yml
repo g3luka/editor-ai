@@ -32,7 +32,8 @@ jobs:
       - name: Install Dependences
         id: dependences
         run: |
-          curl -fsSL https://get.pnpm.io/install.sh | sh -
+          npm install --global corepack@latest
+          corepack enable pnpm
           composer install --no-dev --optimize-autoloader --no-scripts
           cd blocks && pnpm install --prod --frozen-lockfile
           pnpm run build
