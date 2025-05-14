@@ -35,7 +35,7 @@ jobs:
           npm install --global corepack@latest
           corepack enable pnpm
           composer install --no-dev --optimize-autoloader --no-scripts
-          cd blocks && pnpm install --prod --frozen-lockfile
+          cd blocks && pnpm install --frozen-lockfile
           pnpm run build
 
       - name: Build
