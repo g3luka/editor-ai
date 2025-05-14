@@ -10,7 +10,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     env:
-      ARTIFACT_NAME: "editor-ai-${{ github.ref_name }}.zip"
+      ARTIFACT_NAME: "editor-ai.zip"
 
     steps:
       - name: Checkout
@@ -57,5 +57,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ steps.create_artifact.outputs.artifact_path }}
-          asset_name: $ARTIFACT_NAME
+          asset_name: ${{ env.ARTIFACT_NAME }}
           asset_content_type: application/gzip
