@@ -8,6 +8,7 @@
  * @wordpress-plugin
  * Plugin Name: Editor AI
  * Plugin URI:  https://github.com/g3luka/editor-ai
+ * Requires Plugins: secure-custom-fields
  * Description: WordPress Editor with Artificial Intelligence
  * Version:     1.0
  * Author:      Giovanni de Luca

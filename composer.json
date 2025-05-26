@@ -38,5 +38,8 @@
     "preferred-install": "dist",
     "sort-packages": true,
     "optimize-autoloader": true
+  },
+  "require": {
+    "inspector-apm/neuron-ai": "^1.9"
   }
 }

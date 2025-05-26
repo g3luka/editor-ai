@@ -1,6 +1,6 @@
 <?php
 
-namespace EditorAI\UseCases;
+namespace EditorAI;
 
 use EditorAI\Shared\Contracts\Exportable;
 use EditorAI\Shared\Clients\Http\HttpClient;

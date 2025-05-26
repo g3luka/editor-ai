@@ -26,8 +26,8 @@ import { useEffect, useState } from "@wordpress/element";
 
 const options = {
   baseEndpoint: "/editor-ai/v1",
-  apiUseCases: "/use-cases",
   apiPlayground: "/playground",
+  apiAgents: "/agents",
   taskName: "editor-ai",
   modelParams: {
     model: "CLAUDE_3_5_SONNET",
@@ -63,9 +63,10 @@ const options = {
 function PluginComponent() {
   const [isOpen, setOpen] = useState(false);
   const [isOpenSettings, setOpenSettings] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
   const [modelParams, setModelParams] = useState(options.modelParams);
   const [loading, setLoading] = useState(false);
-  const [useCases, setUseCases] = useState([]);
+  const [agents, setAgents] = useState([]);
   const [snacks, setSnacks] = useState([]);
   const [applyDialog, setApplyDialog] = useState(false);
   const [promptAi, setPromptAi] = useState("");
@@ -77,28 +78,30 @@ function PluginComponent() {
   );
   const closeModal = () => setOpen(false);
 
-  function openUseCase(useCase) {
-    if (useCase.prompt) setPromptAi(useCase.prompt);
-    if (useCase.context) setContextAi(useCase.context);
-    if (useCase.contextContent) copyContent();
-    setOpen(true);
-  }
-  async function loadUseCases() {
-    const useCases = await apiFetch({
+  async function loadAgents() {
+    const agents = await apiFetch({
       method: "GET",
-      path: `${options.baseEndpoint}${options.apiUseCases}`,
+      path: `${options.baseEndpoint}${options.apiAgents}`,
     });
-    if (!useCases.length) {
+    console.log("Editor AI - Agents:", agents);
+    if (!agents.length) {
       addSnack({
-        id: "RESPONSE_LOAD_USE_CASES",
-        content: "Falha ao carregar os casos de uso!",
-        spokenMessage: "Falha ao carregar os casos de uso!",
+        id: "RESPONSE_LOAD_AGENTS",
+        content: "Falha ao carregar os agentes!",
+        spokenMessage: "Falha ao carregar os agentes!",
         explicitDismiss: true,
         actions: [],
       });
       return;
     }
-    setUseCases(useCases);
+    setAgents(agents);
+  }
+  function openAgent(agent) {
+    setModalTitle(agent.buttonLabel);
+    if (agent.prompt) setPromptAi(agent.prompt);
+    if (agent.context) setContextAi(agent.context);
+    if (agent.useContent) copyContent();
+    setOpen(true);
   }
   function toggleSettings() {
     setOpenSettings(!isOpenSettings);
@@ -233,9 +236,14 @@ function PluginComponent() {
   function getClientIdFromBlocks(blocks) {
     return blocks.map((block) => block.clientId);
   }
+  function getAgentIcon(icon) {
+    if (!icon) return pencil;
+    if (icons[icon]) return icons[icon];
+    return (<span class={`dashicons ${icon}`}></span>)
+  }
 
   useEffect(() => {
-    loadUseCases();
+    loadAgents();
   }, []);
 
   return (
@@ -336,36 +344,25 @@ function PluginComponent() {
             trabalho e ser mais produtivo.
           </p>
           <Flex direction="column">
-            {!!useCases.length && useCases.map((useCase) => (
-              <Button
-                variant={useCase?.buttonVariant || 'secondary'}
-                icon={useCase?.buttonIcon && icons[useCase.buttonIcon] ? icons[useCase.buttonIcon] : pencil}
-                onClick={() => openUseCase(useCase)}
-              >
-                {useCase.buttonLabel}
-              </Button>
-            ))}
-            {/* <DropdownMenu
-              text="Expandir conteúdo"
-              label="Gerar ideias de novos conteúdos"
-              icon={plus}
-              controls={[
-                {
-                  title: useCases.generateFollowup.buttonLabel,
-                  onClick: useCases.generateFollowup.open,
-                },
-                {
-                  title: useCases.generateExpansion.buttonLabel,
-                  onClick: useCases.generateExpansion.open,
-                },
-              ]}
-            /> */}
+            {!!agents.length && agents.map((agent) => {
+              return (
+                <>
+                <Button
+                  variant={agent?.buttonStyle || 'secondary'}
+                  icon={getAgentIcon(agent.icon)}
+                  onClick={() => openAgent(agent)}
+                >
+                  {agent.buttonLabel}
+                </Button>
+                </>
+              )
+            })}
           </Flex>
         </PanelBody>
       </PluginSidebar>
       {isOpen && (
         <Modal
-          title="Editor AI – Playground"
+          title={`Editor AI: ${modalTitle}`}
           size="fill"
           className="modal-editor-ai"
           onRequestClose={closeModal}

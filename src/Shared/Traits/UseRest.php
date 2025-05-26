@@ -3,6 +3,8 @@
 namespace EditorAI\Shared\Traits;
 
 use EditorAI\Shared\ValueObjects\Rest;
+use WP_Error;
+use WP_Http;
 
 trait UseRest
 {
@@ -20,10 +22,13 @@ trait UseRest
     {
         if (!$this->hasRestRoutes()) return;
         foreach ($this->restRoutes as $rest) {
+            $permission = (is_string($rest->permission) && $rest->permission !== '__return_true')
+                ? fn() => $this->restPermission($rest->permission)
+                : $rest->permission;
             register_rest_route($rest->namespace, $rest->route, [
                 'methods' => $rest->methods,
                 'callback' => $rest->callback,
-                'permission_callback' => $rest->permission,
+                'permission_callback' => $permission,
             ], $rest->override);
         }
     }
@@ -36,5 +41,13 @@ trait UseRest
     public function hasRestRoutes(): bool
     {
         return count($this->restRoutes) > 0;
+    }
+
+    public function restPermission($capability = 'manage_options')
+    {
+        if (!current_user_can($capability)) {
+            return new WP_Error('rest_forbidden', esc_html__('You are not allowed to access this resource.'), ['status' => WP_Http::FORBIDDEN]);
+        }
+        return true;
     }
 }
