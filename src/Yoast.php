@@ -14,6 +14,7 @@ class Yoast
         $this->addFilter('wpseo_accessible_post_types', [$this, 'disableMetabox']);
         $this->addFilter('manage_edit-editor-ai-agent_columns', [$this, 'removeAdminColumns'], 10, 1);
         $this->addFilter('manage_edit-editor-ai-persona_columns', [$this, 'removeAdminColumns'], 10, 1);
+        $this->addFilter('manage_edit-editor-ai-guardrail_columns', [$this, 'removeAdminColumns'], 10, 1);
         $this->addFilter('manage_edit-editor-ai-schedule_columns', [$this, 'removeAdminColumns'], 10, 1);
         $this->registerHooks();
     }
@@ -22,6 +23,7 @@ class Yoast
     {
         unset($post_types['editor-ai-agent']);
         unset($post_types['editor-ai-persona']);
+        unset($post_types['editor-ai-guardrail']);
         unset($post_types['editor-ai-schedule']);
         return $post_types;
     }
