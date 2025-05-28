@@ -6,7 +6,6 @@ use EditorAI\Agents\Agents;
 use EditorAI\Personas\Personas;
 use EditorAI\Schedules\Schedules;
 use EditorAI\Shared\Traits\HasHooks;
-use EditorAI\UseCases\Playground;
 
 class Settings
 {
