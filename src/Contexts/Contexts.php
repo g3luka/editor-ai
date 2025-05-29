@@ -1,6 +1,6 @@
 <?php
 
-namespace EditorAI\Guardrails;
+namespace EditorAI\Contexts;
 
 use EditorAI\AbstractType;
 use Exception;
@@ -8,16 +8,15 @@ use WP_Post;
 use WP_Query;
 use WP_REST_Request;
 
-class Guardrails extends AbstractType
+class Contexts extends AbstractType
 {
-    public string $typeName = 'editor-ai-guardrail';
-    public string $name = 'Guardrails';
-    public string $singularName = 'Guardrail';
+    public string $typeName = 'editor-ai-context';
+    public string $name = 'Contexts';
+    public string $singularName = 'Context';
 
-    public static function restList()
-    {
+    public static function restList() {
         $query = new WP_Query([
-            'post_type' => 'editor-ai-guardrail',
+            'post_type' => 'editor-ai-context',
             'post_status' => 'publish',
         ]);
         if (!$query->have_posts()) return [];
@@ -33,18 +32,17 @@ class Guardrails extends AbstractType
         return $items;
     }
 
-    public static function restItem(WP_REST_Request $request)
-    {
+    public static function restItem(WP_REST_Request $request) {
         if (!$request->get_url_params('id')) {
             throw new Exception('Nenhum id informado');
         }
-        if (!$guardrail = WP_Post::get_instance($request->get_url_params('id'))) {
+        if (!$item = WP_Post::get_instance($request->get_url_params('id'))) {
             throw new Exception('Nenhum item encontrado com este id');
         }
         return [
-            'id' => $guardrail->ID,
-            'title' => get_the_title($guardrail->ID),
-            'instruction' => get_field('instruction', $guardrail->ID),
+            'id' => $item->ID,
+            'title' => get_the_title($item->ID),
+            'instruction' => get_field('instruction', $item->ID),
         ];
     }
 }

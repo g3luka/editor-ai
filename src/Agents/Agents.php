@@ -2,15 +2,18 @@
 
 namespace EditorAI\Agents;
 
-use EditorAI\Settings;
-use EditorAI\Shared\Traits\HasHooks;
+use EditorAI\AbstractType;
 use WP_Error;
 use WP_Post;
 use WP_Query;
 use WP_REST_Request;
 
-class Agents
+class Agents extends AbstractType
 {
+    public string $typeName = 'editor-ai-agent';
+    public string $name = 'Agents';
+    public string $singularName = 'Agent';
+
     final const PROVIDERS = [
         'open-ia' => 'OpenAI',
         'anthropic' => 'Anthropic',
@@ -52,16 +55,8 @@ class Agents
         'aws-bedrock' => [],
     ];
 
-    use HasHooks;
-
-    public function __construct()
+    public static function restList()
     {
-        $this->addAction('init', [$this, 'postType']);
-        $this->addAction('admin_menu', [$this, 'adminMenu']);
-        $this->registerHooks();
-    }
-
-    public static function restAgents() {
         $query = new WP_Query([
             'post_type' => 'editor-ai-agent',
             'post_status' => 'publish',
@@ -70,18 +65,19 @@ class Agents
         $agents = [];
         while ($query->have_posts()) {
             $query->the_post();
-            $agents[] = self::getAgentFields($query->post);
+            $agents[] = self::getFields($query->post);
         }
         return $agents;
     }
 
-    public static function restAgent(WP_REST_Request $request) {
+    public static function restItem(WP_REST_Request $request)
+    {
         $post = get_post($request->get_param('id'));
         if (!$post) return new WP_Error('agent_not_found', 'Agent not found', ['status' => 404]);
-        return self::getAgentFields($post);
+        return self::getFields($post);
     }
 
-    public static function getAgentFields(WP_Post $post)
+    public static function getFields(WP_Post $post)
     {
         return [
             'title' => get_the_title($post->ID),
@@ -99,72 +95,5 @@ class Agents
             'topP' => (float) get_field('top_p', $post->ID),
             'topK' => (int) get_field('top_k', $post->ID),
         ];
-    }
-
-    public function adminMenu()
-    {
-        add_submenu_page(
-            'editor-ai',
-            __('Agents', 'editor-ai'),
-            __('Agents', 'editor-ai'),
-            'edit_posts',
-            'edit.php?post_type=editor-ai-agent',
-        );
-        // add_submenu_page(
-        //     'editor-ai',
-        //     __('Add Agent', 'editor-ai'),
-        //     __('Add Agent', 'editor-ai'),
-        //     'edit_posts',
-        //     'post-new.php?post_type=editor-ai-agent',
-        // );
-    }
-
-    public function postType()
-    {
-        register_post_type('editor-ai-agent', [
-            'label'              => __('Agents', 'editor-ai'),
-            'labels'             => [
-                'menu_name'             => __('Editor AI', 'editor-ai'),
-                'name'                  => __('Agents', 'editor-ai'),
-                'singular_name'         => __('Agent', 'editor-ai'),
-                'name_admin_bar'        => __('Agent', 'editor-ai'),
-                'add_new'               => __('Add new', 'editor-ai'),
-                'add_new_item'          => __('Add new Agent', 'editor-ai'),
-                'new_item'              => __('New Agent', 'editor-ai'),
-                'edit_item'             => __('Edit Agent', 'editor-ai'),
-                'view_item'             => __('View Agent', 'editor-ai'),
-                'all_items'             => __('All Agents', 'editor-ai'),
-                'search_items'          => __('Search Agents', 'editor-ai'),
-                'parent_item_colon'     => __('Parent Agent:', 'editor-ai'),
-                'not_found'             => __('No Agents found', 'editor-ai'),
-                'not_found_in_trash'    => __('No Agents found in trash', 'editor-ai'),
-                'featured_image'        => __('Agent image', 'editor-ai'),
-                'set_featured_image'    => __('Set Agent image', 'editor-ai'),
-                'remove_featured_image' => __('Remove Agent image', 'editor-ai'),
-                'use_featured_image'    => __('Use as Agent image', 'editor-ai'),
-                'archives'              => __('Agents archive', 'editor-ai'),
-                'insert_into_item'      => __('Insert Agent', 'editor-ai'),
-                'uploaded_to_this_item' => __('Imported into this Agent', 'editor-ai'),
-                'filter_items_list'     => __('Filtered list of Agents', 'editor-ai'),
-                'items_list_navigation' => __('Navigation list Agents', 'editor-ai'),
-                'items_list'            => __('List of Agents', 'editor-ai'),
-            ],
-            'description'        => __('EditorAI Agents', 'editor-ai'),
-            'public'             => true,
-            'publicly_queryable' => false,
-            'exclude_from_search'=> true,
-            'show_ui'            => true,
-            'show_in_menu'       => false,
-            'show_in_nav_menus'  => false,
-            'show_in_rest'       => true,
-            'query_var'          => false,
-            'rewrite'            => false,
-            'capability_type'    => 'post',
-            'has_archive'        => false,
-            'hierarchical'       => false,
-            'menu_position'      => 99,
-            'menu_icon'          => Settings::ICON,
-            'supports'           => ['title']
-        ]);
     }
 }

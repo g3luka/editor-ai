@@ -3,6 +3,7 @@
 namespace EditorAI;
 
 use EditorAI\Agents\Agents;
+use EditorAI\Contexts\Contexts;
 use EditorAI\Guardrails\Guardrails;
 use EditorAI\Personas\Personas;
 use EditorAI\Schedules\Schedules;
@@ -16,6 +17,7 @@ class Settings
     public Agents $agents;
     public Personas $personas;
     public Guardrails $guardrails;
+    public Contexts $contexts;
     public Schedules $schedules;
 
     use HasHooks;
@@ -25,6 +27,7 @@ class Settings
         $this->agents = new Agents;
         $this->personas = new Personas;
         $this->guardrails = new Guardrails;
+        $this->contexts = new Contexts;
         $this->schedules = new Schedules;
         new Yoast;
 
